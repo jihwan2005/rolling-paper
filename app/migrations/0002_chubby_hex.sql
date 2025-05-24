@@ -1,0 +1,1 @@
+ALTER TABLE "rolling_paper" ALTER COLUMN "profile_id" SET NOT NULL;

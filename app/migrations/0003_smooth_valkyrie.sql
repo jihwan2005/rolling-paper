@@ -1,0 +1,1 @@
+ALTER TABLE "rolling_paper" ADD CONSTRAINT "rolling_paper_join_code_unique" UNIQUE("join_code");

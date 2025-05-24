@@ -1,0 +1,49 @@
+{
+  "name": "rollingpaper",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "react-router build",
+    "dev": "react-router dev",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:typegen": "supabase gen types typescript --project-id irpitxunudqkuinvqmvu > database.types.ts"
+  },
+  "dependencies": {
+    "@react-router/node": "^7.5.3",
+    "@react-router/serve": "^7.5.3",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.8",
+    "@types/luxon": "^3.6.2",
+    "isbot": "^5.1.27",
+    "lucide-react": "^0.511.0",
+    "luxon": "^3.6.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.5.3",
+    "supabase": "^2.23.4",
+    "type-fest": "^4.41.0",
+    "zod": "^3.25.23"
+  },
+  "devDependencies": {
+    "@react-router/dev": "^7.5.3",
+    "@tailwindcss/postcss": "^4.1.7",
+    "@tailwindcss/vite": "^4.1.4",
+    "@types/node": "^20",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "autoprefixer": "^10.4.21",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.43.1",
+    "i": "^0.3.7",
+    "npm": "^11.4.1",
+    "postcss": "^8.5.3",
+    "postgres": "^3.4.7",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3",
+    "vite-tsconfig-paths": "^5.1.4"
+  }
+}
