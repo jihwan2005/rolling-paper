@@ -36,6 +36,13 @@
       "when": 1748062548105,
       "tag": "0004_good_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1748337982530,
+      "tag": "0005_bitter_zarek",
+      "breakpoints": true
     }
   ]
 }

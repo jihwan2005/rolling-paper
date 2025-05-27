@@ -45,3 +45,15 @@ export const getVisitRollingPaper = async (
   if (error) throw error;
   return data;
 };
+
+export const getRollingPaperTextNode = async (
+  client: SupabaseClient<Database>,
+  { paperId }: { paperId: number }
+) => {
+  const { data, error } = await client
+    .from("rolling_paper_text")
+    .select("*,profiles(username)")
+    .eq("rolling_paper_id", paperId);
+  if (error) throw error;
+  return data;
+};

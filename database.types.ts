@@ -62,6 +62,73 @@ export type Database = {
           },
         ]
       }
+      rolling_paper_text: {
+        Row: {
+          angle: number
+          fill: string
+          font_family: string
+          font_size: number
+          left: number
+          profile_id: string
+          rolling_paper_id: number
+          scaleX: number
+          scaleY: number
+          text_content: string
+          text_node_id: number
+          top: number
+        }
+        Insert: {
+          angle: number
+          fill: string
+          font_family: string
+          font_size: number
+          left: number
+          profile_id: string
+          rolling_paper_id: number
+          scaleX: number
+          scaleY: number
+          text_content: string
+          text_node_id?: never
+          top: number
+        }
+        Update: {
+          angle?: number
+          fill?: string
+          font_family?: string
+          font_size?: number
+          left?: number
+          profile_id?: string
+          rolling_paper_id?: number
+          scaleX?: number
+          scaleY?: number
+          text_content?: string
+          text_node_id?: never
+          top?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rolling_paper_text_profile_id_profiles_profile_id_fk"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "rolling_paper_text_rolling_paper_id_rolling_paper_rolling_paper"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper"
+            referencedColumns: ["rolling_paper_id"]
+          },
+          {
+            foreignKeyName: "rolling_paper_text_rolling_paper_id_rolling_paper_rolling_paper"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper_view"
+            referencedColumns: ["rolling_paper_id"]
+          },
+        ]
+      }
       rolling_paper_visitor: {
         Row: {
           profile_id: string
