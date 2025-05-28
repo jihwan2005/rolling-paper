@@ -62,6 +62,70 @@ export type Database = {
           },
         ]
       }
+      rolling_paper_image: {
+        Row: {
+          angle: number
+          height: number
+          image_node_id: number
+          image_url: string
+          left: number
+          profile_id: string
+          rolling_paper_id: number
+          scaleX: number
+          scaleY: number
+          top: number
+          width: number
+        }
+        Insert: {
+          angle: number
+          height: number
+          image_node_id?: never
+          image_url: string
+          left: number
+          profile_id: string
+          rolling_paper_id: number
+          scaleX: number
+          scaleY: number
+          top: number
+          width: number
+        }
+        Update: {
+          angle?: number
+          height?: number
+          image_node_id?: never
+          image_url?: string
+          left?: number
+          profile_id?: string
+          rolling_paper_id?: number
+          scaleX?: number
+          scaleY?: number
+          top?: number
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rolling_paper_image_profile_id_profiles_profile_id_fk"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "rolling_paper_image_rolling_paper_id_rolling_paper_rolling_pape"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper"
+            referencedColumns: ["rolling_paper_id"]
+          },
+          {
+            foreignKeyName: "rolling_paper_image_rolling_paper_id_rolling_paper_rolling_pape"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper_view"
+            referencedColumns: ["rolling_paper_id"]
+          },
+        ]
+      }
       rolling_paper_text: {
         Row: {
           angle: number
@@ -76,6 +140,7 @@ export type Database = {
           text_content: string
           text_node_id: number
           top: number
+          width: number | null
         }
         Insert: {
           angle: number
@@ -90,6 +155,7 @@ export type Database = {
           text_content: string
           text_node_id?: never
           top: number
+          width?: number | null
         }
         Update: {
           angle?: number
@@ -104,6 +170,7 @@ export type Database = {
           text_content?: string
           text_node_id?: never
           top?: number
+          width?: number | null
         }
         Relationships: [
           {

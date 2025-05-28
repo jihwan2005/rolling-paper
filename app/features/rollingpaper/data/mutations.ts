@@ -56,6 +56,7 @@ export const createTextNode = async (
     scaleX,
     scaleY,
     angle,
+    width,
   }: {
     rolling_paper_id: number;
     userId: string;
@@ -68,6 +69,7 @@ export const createTextNode = async (
     scaleX: string;
     scaleY: string;
     angle: string;
+    width: string;
   }
 ) => {
   const { data, error } = await client
@@ -84,6 +86,7 @@ export const createTextNode = async (
       scaleX: Number(scaleX),
       scaleY: Number(scaleY),
       angle: Number(angle),
+      width: Number(width),
     })
     .select()
     .single();
@@ -115,6 +118,7 @@ export const updateTextNode = async (
     scaleX,
     scaleY,
     angle,
+    width,
   }: {
     nodeId: number;
     textContent: string;
@@ -126,6 +130,7 @@ export const updateTextNode = async (
     scaleX: string;
     scaleY: string;
     angle: string;
+    width: string;
   }
 ) => {
   const { data, error } = await client
@@ -140,8 +145,66 @@ export const updateTextNode = async (
       scaleX: Number(scaleX),
       scaleY: Number(scaleY),
       angle: Number(angle),
+      width: Number(width),
     })
     .eq("text_node_id", nodeId);
   if (error) throw error;
   return data;
+};
+
+export const createImageNode = async (
+  client: SupabaseClient<Database>,
+  {
+    rolling_paper_id,
+    userId,
+    left,
+    top,
+    scaleX,
+    scaleY,
+    angle,
+    width,
+    height,
+    imageUrl,
+  }: {
+    rolling_paper_id: number;
+    userId: string;
+    left: string;
+    top: string;
+    scaleX: string;
+    scaleY: string;
+    angle: string;
+    width: string;
+    height: string;
+    imageUrl: string;
+  }
+) => {
+  const { data, error } = await client
+    .from("rolling_paper_image")
+    .insert({
+      rolling_paper_id,
+      profile_id: userId,
+      left: Number(left),
+      top: Number(top),
+      scaleX: Number(scaleX),
+      scaleY: Number(scaleY),
+      angle: Number(angle),
+      width: Number(width),
+      height: Number(height),
+      image_url: imageUrl,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const deleteImageNode = async (
+  client: SupabaseClient<Database>,
+  { nodeId }: { nodeId: number }
+) => {
+  const { error } = await client
+    .from("rolling_paper_image")
+    .delete()
+    .eq("image_node_id", nodeId);
+  if (error) throw error;
 };

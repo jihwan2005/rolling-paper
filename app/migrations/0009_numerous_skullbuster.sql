@@ -1,0 +1,1 @@
+ALTER TABLE "rolling_paper_text" ALTER COLUMN "width" DROP DEFAULT;

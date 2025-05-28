@@ -1,0 +1,4 @@
+ALTER TABLE "rolling_paper_image" ADD COLUMN "rolling_paper_id" bigint NOT NULL;--> statement-breakpoint
+ALTER TABLE "rolling_paper_image" ADD COLUMN "profile_id" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "rolling_paper_image" ADD CONSTRAINT "rolling_paper_image_rolling_paper_id_rolling_paper_rolling_paper_id_fk" FOREIGN KEY ("rolling_paper_id") REFERENCES "public"."rolling_paper"("rolling_paper_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "rolling_paper_image" ADD CONSTRAINT "rolling_paper_image_profile_id_profiles_profile_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."profiles"("profile_id") ON DELETE cascade ON UPDATE no action;

@@ -1,0 +1,1 @@
+ALTER TABLE "rolling_paper_text" ADD COLUMN "width" double precision;

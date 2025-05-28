@@ -61,4 +61,29 @@ export const rollingPaperText = pgTable("rolling_paper_text", {
       onDelete: "cascade",
     })
     .notNull(),
+  width: doublePrecision().notNull(),
+});
+
+export const rollingPaperImage = pgTable("rolling_paper_image", {
+  image_node_id: bigint({ mode: "number" })
+    .primaryKey()
+    .generatedAlwaysAsIdentity(),
+  left: doublePrecision().notNull(),
+  top: doublePrecision().notNull(),
+  scaleX: doublePrecision().notNull(),
+  scaleY: doublePrecision().notNull(),
+  angle: doublePrecision().notNull(),
+  width: doublePrecision().notNull(),
+  height: doublePrecision().notNull(),
+  image_url: text().notNull(),
+  rolling_paper_id: bigint({ mode: "number" })
+    .references(() => rollingPaper.rolling_paper_id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  profile_id: uuid()
+    .references(() => profiles.profile_id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
 });
