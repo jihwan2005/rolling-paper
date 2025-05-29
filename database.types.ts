@@ -148,6 +148,7 @@ export type Database = {
       rolling_paper_image: {
         Row: {
           angle: number
+          canvas_index: number
           height: number
           image_node_id: number
           image_url: string
@@ -161,6 +162,7 @@ export type Database = {
         }
         Insert: {
           angle: number
+          canvas_index?: number
           height: number
           image_node_id?: never
           image_url: string
@@ -174,6 +176,7 @@ export type Database = {
         }
         Update: {
           angle?: number
+          canvas_index?: number
           height?: number
           image_node_id?: never
           image_url?: string
@@ -212,6 +215,7 @@ export type Database = {
       rolling_paper_text: {
         Row: {
           angle: number
+          canvas_index: number
           fill: string
           font_family: string
           font_size: number
@@ -227,6 +231,7 @@ export type Database = {
         }
         Insert: {
           angle: number
+          canvas_index?: number
           fill: string
           font_family: string
           font_size: number
@@ -242,6 +247,7 @@ export type Database = {
         }
         Update: {
           angle?: number
+          canvas_index?: number
           fill?: string
           font_family?: string
           font_size?: number

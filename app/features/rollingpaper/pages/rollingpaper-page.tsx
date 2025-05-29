@@ -20,6 +20,7 @@ import type {
   CustomImage,
   CustomTextbox,
 } from "../interfaces/fabric-interface";
+import CanvasTabButtons from "../components/CanvasTabButtons";
 
 export const action = async ({ request, params }: Route.ActionArgs) => {
   const { client } = await makeSSRClient(request);
@@ -42,6 +43,7 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
       const scaleY = formData.get("scaleY") as string;
       const angle = formData.get("angle") as string;
       const width = formData.get("width") as string;
+      const canvasIndex = formData.get("canvasIndex") as string;
       if (textNodeId) {
         // 🔄 업데이트
         await updateTextNode(client, {
@@ -72,6 +74,7 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
           scaleY,
           angle,
           width,
+          canvasIndex,
         });
       }
     } else if (type === "image") {
@@ -83,6 +86,7 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
       const width = formData.get("width") as string;
       const height = formData.get("height") as string;
       const imageUrl = formData.get("imageUrl") as string;
+      const canvasIndex = formData.get("canvasIndex") as string;
       await createImageNode(client, {
         rolling_paper_id: Number(rolling_paper_id),
         userId,
@@ -94,6 +98,7 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
         width,
         height,
         imageUrl,
+        canvasIndex,
       });
     }
   }
@@ -140,10 +145,17 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 };
 
 export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [canvas, setCanvas] = useState<Canvas | null>(null);
+  const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]); // 여러 개의 canvas
+  const [canvases, setCanvases] = useState<Canvas[]>([]);
+  const [activeCanvasIndex, setActiveCanvasIndex] = useState<number>(0);
   const [font, setFont] = useState("Arial");
   const [color, setColor] = useState("#000000");
+  const initialCanvasCount = Math.max(
+    1, // 최소 1개의 캔버스는 항상 존재
+    ...loaderData.textNodes.map((n) => n.canvas_index + 1), // textNodes 중 가장 큰 canvas_index + 1
+    ...loaderData.imageNodes.map((n) => n.canvas_index + 1) // imageNodes 중 가장 큰 canvas_index + 1
+  );
+  const [canvasCount, setCanvasCount] = useState(initialCanvasCount);
   const fontFamilies = [
     "Arial",
     "Times New Roman",
@@ -154,101 +166,109 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   ];
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRefs.current.length) return;
 
-    const newCanvas = new Canvas(canvasRef.current, {
-      width: 800,
-      height: 600,
-    });
+    const newCanvases: Canvas[] = [];
 
-    for (const node of loaderData.textNodes) {
-      const customText = new Textbox(node.text_content, {
-        left: node.left,
-        top: node.top,
-        fontSize: node.font_size,
-        fill: node.fill,
-        fontFamily: node.font_family,
-        width: node.width ?? 0,
-        scaleX: node.scaleX,
-        scaleY: node.scaleY,
-        angle: node.angle,
-        editable: node.profile_id === loaderData.userId, // 👈 내가 만든 것만 편집 가능
-        selectable: node.profile_id === loaderData.userId, // 👈 내가 만든 것만 선택 가능
+    canvasRefs.current.forEach((ref, idx) => {
+      if (!ref) return;
+
+      const canvas = new Canvas(ref, {
+        width: 800,
+        height: 600,
       });
-      (customText as any).textNodeId = node.text_node_id;
-      (customText as any).profile_id = node.profile_id;
-      (customText as any).username = node.profiles.username;
-      newCanvas.add(customText);
-    }
 
-    for (const node of loaderData.imageNodes) {
-      // 이미지 URL이 존재해야 합니다
-      if (!node.image_url) continue;
-
-      // Fabric.js의 비동기 이미지 로드 방식
-      FabricImage.fromURL(node.image_url).then((img) => {
-        img.set({
+      // ✅ 공통 데이터 사용
+      for (const node of loaderData.textNodes.filter(
+        (n) => n.canvas_index === idx
+      )) {
+        const customText = new Textbox(node.text_content, {
           left: node.left,
           top: node.top,
+          fontSize: node.font_size,
+          fill: node.fill,
+          fontFamily: node.font_family,
+          width: node.width ?? 0,
           scaleX: node.scaleX,
           scaleY: node.scaleY,
           angle: node.angle,
-          width: node.width,
-          height: node.height,
-          selectable: node.profile_id === loaderData.userId,
           editable: node.profile_id === loaderData.userId,
+          selectable: node.profile_id === loaderData.userId,
         });
+        (customText as any).textNodeId = node.text_node_id;
+        (customText as any).profile_id = node.profile_id;
+        (customText as any).username = node.profiles?.username;
 
-        // 추가 메타데이터 설정
-        (img as any).imageNodeId = node.image_node_id;
-        (img as any).profile_id = node.profile_id;
-        (img as any).username = node.profiles?.username;
-
-        newCanvas.add(img);
-      });
-    }
-
-    const tooltip = document.getElementById("tooltip");
-
-    newCanvas.on("mouse:over", (e) => {
-      if (!tooltip || !e.pointer) return;
-      const target = e.target as any;
-      const evt = e.e as MouseEvent;
-      if (
-        target?.type === "textbox" &&
-        target.profile_id !== loaderData.userId &&
-        target.username
-      ) {
-        tooltip.style.left = evt.pageX + 10 + "px";
-        tooltip.style.top = evt.pageY + 10 + "px";
-        tooltip.innerText = `${target.username}님이 작성함`;
-        tooltip.style.display = "block";
-      } else if (
-        target?.type === "image" &&
-        target.profile_id !== loaderData.userId &&
-        target.username
-      ) {
-        tooltip.style.left = evt.pageX + 10 + "px";
-        tooltip.style.top = evt.pageY + 10 + "px";
-        tooltip.innerText = `${target.username}님이 올림`;
-        tooltip.style.display = "block";
+        canvas.add(customText);
       }
+
+      for (const node of loaderData.imageNodes.filter(
+        (n) => n.canvas_index === idx
+      )) {
+        if (!node.image_url) continue;
+
+        FabricImage.fromURL(node.image_url).then((img) => {
+          img.set({
+            left: node.left,
+            top: node.top,
+            scaleX: node.scaleX,
+            scaleY: node.scaleY,
+            angle: node.angle,
+            width: node.width,
+            height: node.height,
+            selectable: node.profile_id === loaderData.userId,
+            editable: node.profile_id === loaderData.userId,
+          });
+
+          (img as any).imageNodeId = node.image_node_id;
+          (img as any).profile_id = node.profile_id;
+          (img as any).username = node.profiles?.username;
+
+          canvas.add(img);
+        });
+      }
+      // Tooltip 이벤트
+      const tooltip = document.getElementById("tooltip");
+      canvas.on("mouse:over", (e) => {
+        if (!tooltip || !e.pointer) return;
+        const target = e.target as any;
+        const evt = e.e as MouseEvent;
+
+        if (
+          (target?.type === "textbox" || target?.type === "image") &&
+          target.profile_id !== loaderData.userId &&
+          target.username
+        ) {
+          tooltip.style.left = `${evt.pageX + 10}px`;
+          tooltip.style.top = `${evt.pageY + 10}px`;
+          tooltip.innerText =
+            target.type === "textbox"
+              ? `${target.username}님이 작성함`
+              : `${target.username}님이 올림`;
+          tooltip.style.display = "block";
+        }
+      });
+
+      canvas.on("mouse:out", () => {
+        if (tooltip) tooltip.style.display = "none";
+      });
+
+      newCanvases.push(canvas);
     });
 
-    newCanvas.on("mouse:out", () => {
-      if (tooltip) tooltip.style.display = "none";
-    });
-    setCanvas(newCanvas);
+    setCanvases(newCanvases);
 
     return () => {
-      newCanvas.dispose();
+      newCanvases.forEach((canvas) => canvas.dispose());
+      const tooltip = document.getElementById("tooltip");
+      if (tooltip) tooltip.style.display = "none";
     };
-  }, []);
+  }, [loaderData, canvasCount]);
 
   const handleFontChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedFont = e.target.value;
     setFont(selectedFont);
-
+    const canvas = canvases[activeCanvasIndex];
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
     if (activeObject && activeObject.type === "textbox") {
@@ -260,7 +280,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedColor = e.target.value;
     setColor(selectedColor);
-
+    const canvas = canvases[activeCanvasIndex];
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
     if (activeObject && activeObject.type === "textbox") {
@@ -270,6 +290,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   };
 
   const handleAddText = () => {
+    const canvas = canvases[activeCanvasIndex];
     if (!canvas) return;
 
     const newText = new Textbox("새 메시지를 입력하세요!", {
@@ -287,6 +308,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   };
 
   const handleSubmitObject = async () => {
+    const canvas = canvases[activeCanvasIndex];
     if (!canvas) return;
     const obj = canvas.getActiveObject();
 
@@ -307,6 +329,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
       formData.append("scaleX", String(textbox.scaleX));
       formData.append("scaleY", String(textbox.scaleY));
       formData.append("angle", String(textbox.angle));
+      formData.append("canvasIndex", String(activeCanvasIndex));
     } else if (obj?.type === "image") {
       formData.append("type", "image");
       formData.append("imageUrl", String(image.getSrc() || ""));
@@ -318,6 +341,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
       formData.append("angle", String(image.angle));
       formData.append("width", String(image.width));
       formData.append("height", String(image.height));
+      formData.append("canvasIndex", String(activeCanvasIndex));
     } else {
       return;
     }
@@ -329,6 +353,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   };
 
   const handleDeleteObject = async () => {
+    const canvas = canvases[activeCanvasIndex];
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
 
@@ -365,6 +390,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const canvas = canvases[activeCanvasIndex];
     const file = e.target.files?.[0];
     if (!file || !canvas) return;
 
@@ -384,6 +410,11 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
       });
     };
     reader.readAsDataURL(file);
+  };
+
+  const addCanvas = () => {
+    setCanvasCount((count) => count + 1);
+    setActiveCanvasIndex(canvasCount); // 새로 추가된 탭으로 자동 전환
   };
 
   return (
@@ -422,8 +453,34 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
           zIndex: 100,
         }}
       ></div>
-
-      <canvas ref={canvasRef} style={{ border: "1px solid red" }} />
+      <div>
+        {/* 탭 버튼 */}
+        <CanvasTabButtons
+          canvasCount={canvasCount}
+          activeCanvasIndex={activeCanvasIndex}
+          setActiveCanvasIndex={setActiveCanvasIndex}
+          addCanvas={addCanvas}
+        />
+        <div className="relative w-[800px] h-[600px] border">
+          {[...Array(canvasCount)].map((_, i) => (
+            <div
+              key={i}
+              style={{
+                display: activeCanvasIndex === i ? "block" : "none",
+              }}
+            >
+              <canvas
+                ref={(el) => {
+                  if (el) canvasRefs.current[i] = el;
+                }}
+                width={800}
+                height={600}
+                style={{ border: "1px solid red" }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

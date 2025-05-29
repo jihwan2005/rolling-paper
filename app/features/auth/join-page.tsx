@@ -58,10 +58,7 @@ export default function JoinPage({ actionData }: Route.ComponentProps) {
   const isSubmitting =
     navigation.state === "submitting" || navigation.state === "loading";
   return (
-    <div className="flex flex-col relative items-center justify-center h-full mt-20">
-      <button className="absolute right-8 top-8 ">
-        <Link to="/auth/login">Login</Link>
-      </button>
+    <div className="flex flex-col items-center justify-center h-full mt-20">
       <div className="flex items-center flex-col justify-center w-full max-w-md gap-10">
         <h1 className="text-2xl font-semibold">Create an account</h1>
         <Form className="w-full space-y-4" method="post">
@@ -113,6 +110,10 @@ export default function JoinPage({ actionData }: Route.ComponentProps) {
             <p className="text-red-500">{actionData.signUpError}</p>
           )}
         </Form>
+        <Link to="/auth/login">
+          If you have account?{" "}
+          <span className="text-blue-400">Login &rarr;</span>
+        </Link>
       </div>
     </div>
   );

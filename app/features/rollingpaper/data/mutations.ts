@@ -57,6 +57,7 @@ export const createTextNode = async (
     scaleY,
     angle,
     width,
+    canvasIndex,
   }: {
     rolling_paper_id: number;
     userId: string;
@@ -70,6 +71,7 @@ export const createTextNode = async (
     scaleY: string;
     angle: string;
     width: string;
+    canvasIndex: string;
   }
 ) => {
   const { data, error } = await client
@@ -87,6 +89,7 @@ export const createTextNode = async (
       scaleY: Number(scaleY),
       angle: Number(angle),
       width: Number(width),
+      canvas_index: Number(canvasIndex),
     })
     .select()
     .single();
@@ -165,6 +168,7 @@ export const createImageNode = async (
     width,
     height,
     imageUrl,
+    canvasIndex,
   }: {
     rolling_paper_id: number;
     userId: string;
@@ -176,6 +180,7 @@ export const createImageNode = async (
     width: string;
     height: string;
     imageUrl: string;
+    canvasIndex: string;
   }
 ) => {
   const { data, error } = await client
@@ -191,6 +196,7 @@ export const createImageNode = async (
       width: Number(width),
       height: Number(height),
       image_url: imageUrl,
+      canvas_index: Number(canvasIndex),
     })
     .select()
     .single();

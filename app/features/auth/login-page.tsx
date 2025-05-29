@@ -51,10 +51,7 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
     navigation.state === "submitting" || navigation.state === "loading";
 
   return (
-    <div className="flex flex-col relative items-center justify-center h-full mt-20">
-      <button className="absolute right-8 top-8">
-        <Link to="/auth/join">Join</Link>
-      </button>
+    <div className="flex flex-col items-center justify-center h-full mt-20">
       <div className="flex items-center flex-col justify-center w-full max-w-md gap-10">
         <h1 className="text-2xl font-semibold">Log in to your account</h1>
         <Form className="w-full space-y-4" method="post">
@@ -99,6 +96,10 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
             <p className="text-red-500">{actionData.loginError}</p>
           )}
         </Form>
+        <Link to="/auth/join">
+          If you don't have account?{" "}
+          <span className="text-blue-400">Join &rarr;</span>
+        </Link>
       </div>
     </div>
   );

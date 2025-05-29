@@ -64,6 +64,7 @@ export const rollingPaperText = pgTable("rolling_paper_text", {
     })
     .notNull(),
   width: doublePrecision().notNull(),
+  canvas_index: integer().notNull().default(0),
 });
 
 export const rollingPaperImage = pgTable("rolling_paper_image", {
@@ -88,6 +89,7 @@ export const rollingPaperImage = pgTable("rolling_paper_image", {
       onDelete: "cascade",
     })
     .notNull(),
+  canvas_index: integer().notNull().default(0),
 });
 
 export const myRollingPaper = pgTable(
