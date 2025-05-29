@@ -7,7 +7,7 @@ export function JoinRollingPaperInput({
 }: JoinRollingPaperInputProps) {
   return (
     <>
-      <form method="post" className="w-1/2 flex items-center mb-3">
+      <form method="post" className="w-1/3 flex items-center mb-3">
         <input
           className="border-2 p-2 rounded-sm flex-1"
           placeholder="Join Code"

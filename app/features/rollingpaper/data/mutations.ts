@@ -208,3 +208,33 @@ export const deleteImageNode = async (
     .eq("image_node_id", nodeId);
   if (error) throw error;
 };
+
+export const createMyRollingPaper = async (
+  client: SupabaseClient<Database>,
+  { paperId, userId }: { paperId: number; userId: string }
+) => {
+  const { data, error } = await client
+    .from("my_rolling_paper")
+    .insert({
+      rolling_paper_id: paperId,
+      recipient: userId,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const seeNotification = async (
+  client: SupabaseClient<Database>,
+  { userId }: { userId: string }
+) => {
+  const { data, error } = await client
+    .from("notifications")
+    .update({
+      seen: true,
+    })
+    .eq("target_id", userId);
+  if (error) throw error;
+  return data;
+};

@@ -1,0 +1,1 @@
+ALTER TABLE "my_rolling_paper" ADD CONSTRAINT "my_rolling_paper_rolling_paper_id_recipient_pk" PRIMARY KEY("rolling_paper_id","recipient");

@@ -69,3 +69,28 @@ export const getRollingPaperImageNode = async (
   if (error) throw error;
   return data;
 };
+
+export const getMyRollingPaper = async (
+  client: SupabaseClient<Database>,
+  { userId }: { userId: string }
+) => {
+  const { data, error } = await client
+    .from("my_rolling_paper")
+    .select("*,rolling_paper(rolling_paper_title,join_code)")
+    .eq("recipient", userId);
+  if (error) throw error;
+  return data;
+};
+
+export const countNotification = async (
+  client: SupabaseClient<Database>,
+  { userId }: { userId: string }
+) => {
+  const { count, error } = await client
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("seen", false)
+    .eq("target_id", userId);
+  if (error) throw error;
+  return count ?? 0;
+};

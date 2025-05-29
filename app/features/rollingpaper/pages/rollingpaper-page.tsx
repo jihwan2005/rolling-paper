@@ -119,19 +119,24 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const { client } = await makeSSRClient(request);
   const userId = await getLoggedInUserId(client);
   const joinCode = params.joinCode;
-  const { rolling_paper_title } = await getRollingPaperByJoinCode(client, {
-    joinCode,
-  });
-  const { rolling_paper_id } = await getRollingPaperByJoinCode(client, {
-    joinCode,
-  });
+  const { rolling_paper_title, rolling_paper_id, profile_id } =
+    await getRollingPaperByJoinCode(client, {
+      joinCode,
+    });
   const textNodes = await getRollingPaperTextNode(client, {
     paperId: rolling_paper_id,
   });
   const imageNodes = await getRollingPaperImageNode(client, {
     paperId: rolling_paper_id,
   });
-  return { joinCode, rolling_paper_title, textNodes, userId, imageNodes };
+  return {
+    joinCode,
+    rolling_paper_title,
+    textNodes,
+    userId,
+    imageNodes,
+    profile_id,
+  };
 };
 
 export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
@@ -139,7 +144,6 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   const [canvas, setCanvas] = useState<Canvas | null>(null);
   const [font, setFont] = useState("Arial");
   const [color, setColor] = useState("#000000");
-
   const fontFamilies = [
     "Arial",
     "Times New Roman",
@@ -388,6 +392,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
         <span className="text-3xl">{loaderData.rolling_paper_title}</span>
         <span className="text-xl text-gray-400">{loaderData.joinCode}</span>
       </div>
+
       <RollingPaperUI
         font={font}
         fontFamilies={fontFamilies}
@@ -398,7 +403,11 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
         handleDeleteObject={handleDeleteObject}
         handleSubmitObject={handleSubmitObject}
         handleImageUpload={handleImageUpload}
+        authorId={loaderData.profile_id}
+        userId={loaderData.userId}
+        joinCode={loaderData.joinCode}
       />
+
       <div
         id="tooltip"
         style={{

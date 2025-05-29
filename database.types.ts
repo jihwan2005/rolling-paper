@@ -9,6 +9,89 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      my_rolling_paper: {
+        Row: {
+          recipient: string
+          rolling_paper_id: number
+        }
+        Insert: {
+          recipient: string
+          rolling_paper_id: number
+        }
+        Update: {
+          recipient?: string
+          rolling_paper_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "my_rolling_paper_recipient_profiles_profile_id_fk"
+            columns: ["recipient"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "my_rolling_paper_rolling_paper_id_rolling_paper_rolling_paper_i"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper"
+            referencedColumns: ["rolling_paper_id"]
+          },
+          {
+            foreignKeyName: "my_rolling_paper_rolling_paper_id_rolling_paper_rolling_paper_i"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper_view"
+            referencedColumns: ["rolling_paper_id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          notification_id: number
+          rolling_paper_id: number
+          seen: boolean
+          target_id: string
+        }
+        Insert: {
+          created_at?: string
+          notification_id?: never
+          rolling_paper_id: number
+          seen?: boolean
+          target_id: string
+        }
+        Update: {
+          created_at?: string
+          notification_id?: never
+          rolling_paper_id?: number
+          seen?: boolean
+          target_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_rolling_paper_id_rolling_paper_rolling_paper_id_f"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper"
+            referencedColumns: ["rolling_paper_id"]
+          },
+          {
+            foreignKeyName: "notifications_rolling_paper_id_rolling_paper_rolling_paper_id_f"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper_view"
+            referencedColumns: ["rolling_paper_id"]
+          },
+          {
+            foreignKeyName: "notifications_target_id_profiles_profile_id_fk"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["profile_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

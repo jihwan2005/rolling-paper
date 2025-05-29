@@ -1,0 +1,534 @@
+{
+  "id": "97bad780-18f0-494d-a1e5-39e1d474b357",
+  "prevId": "44a09c2c-ba88-4cc0-bbf4-ba88989c4d2d",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.my_rolling_paper": {
+      "name": "my_rolling_paper",
+      "schema": "",
+      "columns": {
+        "rolling_paper_id": {
+          "name": "rolling_paper_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recipient": {
+          "name": "recipient",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "my_rolling_paper_rolling_paper_id_rolling_paper_rolling_paper_id_fk": {
+          "name": "my_rolling_paper_rolling_paper_id_rolling_paper_rolling_paper_id_fk",
+          "tableFrom": "my_rolling_paper",
+          "tableTo": "rolling_paper",
+          "columnsFrom": [
+            "rolling_paper_id"
+          ],
+          "columnsTo": [
+            "rolling_paper_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "my_rolling_paper_recipient_profiles_profile_id_fk": {
+          "name": "my_rolling_paper_recipient_profiles_profile_id_fk",
+          "tableFrom": "my_rolling_paper",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "recipient"
+          ],
+          "columnsTo": [
+            "profile_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "my_rolling_paper_rolling_paper_id_recipient_pk": {
+          "name": "my_rolling_paper_rolling_paper_id_recipient_pk",
+          "columns": [
+            "rolling_paper_id",
+            "recipient"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rolling_paper": {
+      "name": "rolling_paper",
+      "schema": "",
+      "columns": {
+        "rolling_paper_id": {
+          "name": "rolling_paper_id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "rolling_paper_rolling_paper_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "rolling_paper_title": {
+          "name": "rolling_paper_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "join_code": {
+          "name": "join_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rolling_paper_profile_id_profiles_profile_id_fk": {
+          "name": "rolling_paper_profile_id_profiles_profile_id_fk",
+          "tableFrom": "rolling_paper",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "profile_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rolling_paper_join_code_unique": {
+          "name": "rolling_paper_join_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "join_code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rolling_paper_image": {
+      "name": "rolling_paper_image",
+      "schema": "",
+      "columns": {
+        "image_node_id": {
+          "name": "image_node_id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "rolling_paper_image_image_node_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "left": {
+          "name": "left",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "top": {
+          "name": "top",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scaleX": {
+          "name": "scaleX",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scaleY": {
+          "name": "scaleY",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "angle": {
+          "name": "angle",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "width": {
+          "name": "width",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "height": {
+          "name": "height",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rolling_paper_id": {
+          "name": "rolling_paper_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rolling_paper_image_rolling_paper_id_rolling_paper_rolling_paper_id_fk": {
+          "name": "rolling_paper_image_rolling_paper_id_rolling_paper_rolling_paper_id_fk",
+          "tableFrom": "rolling_paper_image",
+          "tableTo": "rolling_paper",
+          "columnsFrom": [
+            "rolling_paper_id"
+          ],
+          "columnsTo": [
+            "rolling_paper_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "rolling_paper_image_profile_id_profiles_profile_id_fk": {
+          "name": "rolling_paper_image_profile_id_profiles_profile_id_fk",
+          "tableFrom": "rolling_paper_image",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "profile_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rolling_paper_text": {
+      "name": "rolling_paper_text",
+      "schema": "",
+      "columns": {
+        "text_node_id": {
+          "name": "text_node_id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "rolling_paper_text_text_node_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "text_content": {
+          "name": "text_content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "font_family": {
+          "name": "font_family",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "font_size": {
+          "name": "font_size",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fill": {
+          "name": "fill",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "left": {
+          "name": "left",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "top": {
+          "name": "top",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scaleX": {
+          "name": "scaleX",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scaleY": {
+          "name": "scaleY",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "angle": {
+          "name": "angle",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rolling_paper_id": {
+          "name": "rolling_paper_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "width": {
+          "name": "width",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rolling_paper_text_rolling_paper_id_rolling_paper_rolling_paper_id_fk": {
+          "name": "rolling_paper_text_rolling_paper_id_rolling_paper_rolling_paper_id_fk",
+          "tableFrom": "rolling_paper_text",
+          "tableTo": "rolling_paper",
+          "columnsFrom": [
+            "rolling_paper_id"
+          ],
+          "columnsTo": [
+            "rolling_paper_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "rolling_paper_text_profile_id_profiles_profile_id_fk": {
+          "name": "rolling_paper_text_profile_id_profiles_profile_id_fk",
+          "tableFrom": "rolling_paper_text",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "profile_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rolling_paper_visitor": {
+      "name": "rolling_paper_visitor",
+      "schema": "",
+      "columns": {
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rolling_paper_id": {
+          "name": "rolling_paper_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visited_at": {
+          "name": "visited_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rolling_paper_visitor_profile_id_profiles_profile_id_fk": {
+          "name": "rolling_paper_visitor_profile_id_profiles_profile_id_fk",
+          "tableFrom": "rolling_paper_visitor",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "profile_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "rolling_paper_visitor_rolling_paper_id_rolling_paper_rolling_paper_id_fk": {
+          "name": "rolling_paper_visitor_rolling_paper_id_rolling_paper_rolling_paper_id_fk",
+          "tableFrom": "rolling_paper_visitor",
+          "tableTo": "rolling_paper",
+          "columnsFrom": [
+            "rolling_paper_id"
+          ],
+          "columnsTo": [
+            "rolling_paper_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.profiles": {
+      "name": "profiles",
+      "schema": "",
+      "columns": {
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "profiles_profile_id_users_id_fk": {
+          "name": "profiles_profile_id_users_id_fk",
+          "tableFrom": "profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "auth.users": {
+      "name": "users",
+      "schema": "auth",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

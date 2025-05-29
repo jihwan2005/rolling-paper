@@ -1,8 +1,10 @@
 import {
   bigint,
+  boolean,
   doublePrecision,
   integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -86,4 +88,42 @@ export const rollingPaperImage = pgTable("rolling_paper_image", {
       onDelete: "cascade",
     })
     .notNull(),
+});
+
+export const myRollingPaper = pgTable(
+  "my_rolling_paper",
+  {
+    rolling_paper_id: bigint({ mode: "number" })
+      .references(() => rollingPaper.rolling_paper_id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
+    recipient: uuid()
+      .references(() => profiles.profile_id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.rolling_paper_id, table.recipient] }),
+  ]
+);
+
+export const notifications = pgTable("notifications", {
+  notification_id: bigint({ mode: "number" })
+    .primaryKey()
+    .generatedAlwaysAsIdentity(),
+  rolling_paper_id: bigint({ mode: "number" })
+    .references(() => rollingPaper.rolling_paper_id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+
+  target_id: uuid()
+    .references(() => profiles.profile_id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  seen: boolean().default(false).notNull(),
+  created_at: timestamp().notNull().defaultNow(),
 });

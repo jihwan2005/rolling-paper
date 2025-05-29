@@ -23,7 +23,7 @@ export function MyJoinRollingPaperList({
       {myRollingPapers?.map((paper) => (
         <Link
           to={`/rolling-paper/${paper.rolling_paper?.join_code}`}
-          className="w-1/2"
+          className="w-1/3"
           key={paper.rolling_paper?.join_code || paper.visited_at} // 고유한 key를 위해 join_code 또는 visited_at 사용
         >
           <div className="flex items-center justify-between border p-2 rounded shadow hover:bg-gray-200 mb-3 cursor-pointer">

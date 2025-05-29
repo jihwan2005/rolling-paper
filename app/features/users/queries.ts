@@ -22,6 +22,19 @@ export const getUserById = async (
   return data;
 };
 
+export const getUserIdByUsername = async (
+  client: SupabaseClient<Database>,
+  { username }: { username: string }
+) => {
+  const { data, error } = await client
+    .from("profiles")
+    .select("profile_id")
+    .eq("username", username)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+};
+
 export const getLoggedInUserId = async (client: SupabaseClient<Database>) => {
   const { data, error } = await client.auth.getUser();
   if (error || data.user === null) {

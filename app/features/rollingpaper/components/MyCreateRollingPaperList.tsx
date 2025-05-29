@@ -21,7 +21,7 @@ export function MyCreateRollingPaperList({
       {myRollingPapers.map((paper) => (
         <Link
           to={`/rolling-paper/${paper?.join_code}`}
-          className="w-1/2"
+          className="w-1/3"
           key={paper.join_code} // React 리스트 렌더링을 위한 key prop 추가
         >
           <div className="flex items-center justify-between border p-2 rounded shadow hover:bg-gray-200 mb-3 cursor-pointer">
