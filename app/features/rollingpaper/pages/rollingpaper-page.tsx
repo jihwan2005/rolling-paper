@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas, Textbox, FabricImage } from "fabric";
+import { Canvas, Textbox, FabricImage, PencilBrush } from "fabric";
 import type { Route } from "./+types/rollingpaper-page";
 import { makeSSRClient } from "~/supa-client";
 import {
@@ -8,117 +8,14 @@ import {
   getRollingPaperTextNode,
 } from "../data/queries";
 import { getLoggedInUserId } from "~/features/users/queries";
-import {
-  createImageNode,
-  createTextNode,
-  deleteImageNode,
-  deleteTextNode,
-  updateTextNode,
-} from "../data/mutations";
 import RollingPaperUI from "../components/RollingPaperUI";
-import type {
-  CustomImage,
-  CustomTextbox,
-} from "../interfaces/fabric-interface";
 import CanvasTabButtons from "../components/CanvasTabButtons";
-
-export const action = async ({ request, params }: Route.ActionArgs) => {
-  const { client } = await makeSSRClient(request);
-  if (request.method === "POST") {
-    const formData = await request.formData();
-    const { rolling_paper_id } = await getRollingPaperByJoinCode(client, {
-      joinCode: params.joinCode,
-    });
-    const userId = await getLoggedInUserId(client);
-    const type = formData.get("type");
-    if (type === "textbox") {
-      const textNodeId = formData.get("textNodeId");
-      const textContent = formData.get("text") as string;
-      const fontFamily = formData.get("fontFamily") as string;
-      const fontSize = formData.get("fontSize") as string;
-      const fill = formData.get("fill") as string;
-      const left = formData.get("left") as string;
-      const top = formData.get("top") as string;
-      const scaleX = formData.get("scaleX") as string;
-      const scaleY = formData.get("scaleY") as string;
-      const angle = formData.get("angle") as string;
-      const width = formData.get("width") as string;
-      const canvasIndex = formData.get("canvasIndex") as string;
-      if (textNodeId) {
-        // 🔄 업데이트
-        await updateTextNode(client, {
-          nodeId: Number(textNodeId),
-          textContent,
-          fontFamily,
-          fontSize,
-          fill,
-          left,
-          top,
-          scaleX,
-          scaleY,
-          angle,
-          width,
-        });
-      } else {
-        // 🆕 새로 생성
-        await createTextNode(client, {
-          rolling_paper_id: Number(rolling_paper_id),
-          userId,
-          textContent,
-          fontFamily,
-          fontSize,
-          fill,
-          left,
-          top,
-          scaleX,
-          scaleY,
-          angle,
-          width,
-          canvasIndex,
-        });
-      }
-    } else if (type === "image") {
-      const left = formData.get("left") as string;
-      const top = formData.get("top") as string;
-      const scaleX = formData.get("scaleX") as string;
-      const scaleY = formData.get("scaleY") as string;
-      const angle = formData.get("angle") as string;
-      const width = formData.get("width") as string;
-      const height = formData.get("height") as string;
-      const imageUrl = formData.get("imageUrl") as string;
-      const canvasIndex = formData.get("canvasIndex") as string;
-      await createImageNode(client, {
-        rolling_paper_id: Number(rolling_paper_id),
-        userId,
-        left,
-        top,
-        scaleX,
-        scaleY,
-        angle,
-        width,
-        height,
-        imageUrl,
-        canvasIndex,
-      });
-    }
-  }
-
-  if (request.method === "DELETE") {
-    const formData = await request.formData();
-    const type = formData.get("type");
-    if (type === "text") {
-      const textNodeId = Number(formData.get("textNodeId"));
-      await deleteTextNode(client, {
-        nodeId: textNodeId,
-      });
-    } else if (type === "image") {
-      const imageNodeId = Number(formData.get("imageNodeId"));
-      await deleteImageNode(client, {
-        nodeId: imageNodeId,
-      });
-    }
-  }
-};
+import CanvasSection from "../components/CanvasSection";
+import { useTextBoxStyles } from "../hooks/useTextBoxStyles";
+import { useHandleObject } from "../hooks/useHandleObject";
+import { useObjectCreation } from "../hooks/useObjectCreation";
+import CanvasTooltip from "../components/Tooltip";
+import { useBrushStyles } from "../hooks/useBrushStyles";
 
 export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const { client } = await makeSSRClient(request);
@@ -150,6 +47,8 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   const [activeCanvasIndex, setActiveCanvasIndex] = useState<number>(0);
   const [font, setFont] = useState("Arial");
   const [color, setColor] = useState("#000000");
+  // 브러쉬 모드 관련 상태 추가
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
   const initialCanvasCount = Math.max(
     1, // 최소 1개의 캔버스는 항상 존재
     ...loaderData.textNodes.map((n) => n.canvas_index + 1), // textNodes 중 가장 큰 canvas_index + 1
@@ -165,6 +64,17 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
     "Comic Sans MS",
   ];
 
+  const {
+    brushColor,
+    brushWidth,
+    handleBrushColorChange,
+    handleBrushWidthChange,
+  } = useBrushStyles({
+    canvases,
+    activeCanvasIndex,
+    isDrawingMode,
+  });
+
   useEffect(() => {
     if (!canvasRefs.current.length) return;
 
@@ -177,6 +87,10 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
         width: 800,
         height: 600,
       });
+
+      canvas.freeDrawingBrush = new PencilBrush(canvas);
+      canvas.freeDrawingBrush.color = brushColor;
+      canvas.freeDrawingBrush.width = brushWidth;
 
       // ✅ 공통 데이터 사용
       for (const node of loaderData.textNodes.filter(
@@ -265,156 +179,58 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
     };
   }, [loaderData, canvasCount]);
 
-  const handleFontChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedFont = e.target.value;
-    setFont(selectedFont);
+  useEffect(() => {
     const canvas = canvases[activeCanvasIndex];
-    if (!canvas) return;
-    const activeObject = canvas.getActiveObject();
-    if (activeObject && activeObject.type === "textbox") {
-      activeObject.set("fontFamily", selectedFont);
-      canvas.requestRenderAll();
+    if (canvas && canvas.freeDrawingBrush) {
+      // <-- useEffect 내에서도 freeDrawingBrush 체크 추가
+      canvas.isDrawingMode = isDrawingMode;
+      canvas.freeDrawingBrush.color = brushColor;
+      canvas.freeDrawingBrush.width = brushWidth;
     }
-  };
+  }, [activeCanvasIndex, canvases, isDrawingMode, brushColor, brushWidth]);
 
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedColor = e.target.value;
-    setColor(selectedColor);
-    const canvas = canvases[activeCanvasIndex];
-    if (!canvas) return;
-    const activeObject = canvas.getActiveObject();
-    if (activeObject && activeObject.type === "textbox") {
-      activeObject.set("fill", selectedColor);
-      canvas.requestRenderAll();
-    }
-  };
+  const {
+    handleFontChange, // 이름 충돌을 피하기 위해 이름 변경
+    handleColorChange, // 이름 충돌을 피하기 위해 이름 변경
+  } = useTextBoxStyles({ canvases, activeCanvasIndex });
 
-  const handleAddText = () => {
-    const canvas = canvases[activeCanvasIndex];
-    if (!canvas) return;
+  const { handleSubmitObject, handleDeleteObject } = useHandleObject({
+    canvases,
+    activeCanvasIndex,
+    joinCode: loaderData.joinCode, // loaderData에서 joinCode 전달
+    isDrawingMode, // isDrawingMode 상태 전달
+  });
 
-    const newText = new Textbox("새 메시지를 입력하세요!", {
-      left: 150,
-      top: 150,
-      fontSize: 24,
-      fill: color,
-      fontFamily: font,
-      editable: true,
-    });
+  const { handleAddText, handleImageUpload } = useObjectCreation({
+    canvases,
+    activeCanvasIndex,
+    isDrawingMode,
+    font, // font 상태 전달
+    color, // color 상태 전달
+  });
 
-    canvas.add(newText);
-    canvas.setActiveObject(newText);
-    canvas.requestRenderAll();
-  };
+  const handleToggleDrawingMode = () => {
+    setIsDrawingMode((prev) => {
+      const newDrawingMode = !prev;
+      const canvas = canvases[activeCanvasIndex];
+      if (canvas) {
+        canvas.isDrawingMode = newDrawingMode; // 캔버스 상태 즉시 업데이트
+        canvas.selection = !newDrawingMode; // 드로잉 모드에 따라 객체 선택 비활성화/활성화
+        canvas.discardActiveObject(); // 현재 선택된 객체 해제        canvas.requestRenderAll();
 
-  const handleSubmitObject = async () => {
-    const canvas = canvases[activeCanvasIndex];
-    if (!canvas) return;
-    const obj = canvas.getActiveObject();
-
-    const textbox = obj as CustomTextbox;
-    const image = obj as CustomImage;
-
-    const formData = new FormData();
-    if (obj?.type === "textbox") {
-      formData.append("type", "textbox");
-      formData.append("textNodeId", String(textbox.textNodeId || ""));
-      formData.append("text", textbox.text || "");
-      formData.append("fontFamily", textbox.fontFamily || "");
-      formData.append("fontSize", String(textbox.fontSize));
-      formData.append("fill", textbox.fill?.toString() || "");
-      formData.append("width", String(textbox.width));
-      formData.append("left", String(textbox.left));
-      formData.append("top", String(textbox.top));
-      formData.append("scaleX", String(textbox.scaleX));
-      formData.append("scaleY", String(textbox.scaleY));
-      formData.append("angle", String(textbox.angle));
-      formData.append("canvasIndex", String(activeCanvasIndex));
-    } else if (obj?.type === "image") {
-      formData.append("type", "image");
-      formData.append("imageUrl", String(image.getSrc() || ""));
-      formData.append("imageNodeId", String(image.imageNodeId || ""));
-      formData.append("left", String(image.left));
-      formData.append("top", String(image.top));
-      formData.append("scaleX", String(image.scaleX));
-      formData.append("scaleY", String(image.scaleY));
-      formData.append("angle", String(image.angle));
-      formData.append("width", String(image.width));
-      formData.append("height", String(image.height));
-      formData.append("canvasIndex", String(activeCanvasIndex));
-    } else {
-      return;
-    }
-
-    await fetch(`/rolling-paper/${loaderData.joinCode}`, {
-      method: "POST",
-      body: formData,
-    });
-  };
-
-  const handleDeleteObject = async () => {
-    const canvas = canvases[activeCanvasIndex];
-    if (!canvas) return;
-    const activeObject = canvas.getActiveObject();
-
-    if (!activeObject) return;
-
-    const formData = new FormData();
-
-    if (activeObject.type === "textbox") {
-      // @ts-ignore
-      const textNodeId = activeObject.textNodeId;
-      if (textNodeId) {
-        formData.append("type", "text");
-        formData.append("textNodeId", String(textNodeId));
+        // 브러쉬 모드 활성화 시 브러쉬 속성 적용
+        if (newDrawingMode && canvas.freeDrawingBrush) {
+          canvas.freeDrawingBrush.color = brushColor;
+          canvas.freeDrawingBrush.width = brushWidth;
+        }
       }
-    } else if (activeObject.type === "image") {
-      // @ts-ignore
-      const imageNodeId = activeObject.imageNodeId;
-      if (imageNodeId) {
-        formData.append("type", "image");
-        formData.append("imageNodeId", String(imageNodeId));
-      }
-    } else {
-      return;
-    }
-
-    canvas.remove(activeObject);
-    canvas.discardActiveObject();
-    canvas.requestRenderAll();
-
-    await fetch(`/rolling-paper/${loaderData.joinCode}`, {
-      method: "DELETE",
-      body: formData,
+      return newDrawingMode;
     });
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const canvas = canvases[activeCanvasIndex];
-    const file = e.target.files?.[0];
-    if (!file || !canvas) return;
-
-    const reader = new FileReader();
-    reader.onload = async (readerEvent) => {
-      const imageUrl = readerEvent.target?.result as string;
-      await FabricImage.fromURL(imageUrl).then((img) => {
-        img.set({
-          scaleX: 0.5,
-          scaleY: 0.5,
-          left: 150,
-          top: 150,
-        });
-        canvas.add(img);
-        canvas.setActiveObject(img);
-        canvas.requestRenderAll();
-      });
-    };
-    reader.readAsDataURL(file);
   };
 
   const addCanvas = () => {
     setCanvasCount((count) => count + 1);
-    setActiveCanvasIndex(canvasCount); // 새로 추가된 탭으로 자동 전환
+    setActiveCanvasIndex(canvasCount);
   };
 
   return (
@@ -437,22 +253,15 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
         authorId={loaderData.profile_id}
         userId={loaderData.userId}
         joinCode={loaderData.joinCode}
+        isDrawingMode={isDrawingMode}
+        handleToggleDrawingMode={handleToggleDrawingMode}
+        brushColor={brushColor}
+        handleBrushColorChange={handleBrushColorChange}
+        brushWidth={brushWidth}
+        handleBrushWidthChange={handleBrushWidthChange}
       />
 
-      <div
-        id="tooltip"
-        style={{
-          position: "absolute",
-          pointerEvents: "none",
-          background: "rgba(0,0,0,0.7)",
-          color: "white",
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "12px",
-          display: "none",
-          zIndex: 100,
-        }}
-      ></div>
+      <CanvasTooltip />
       <div>
         {/* 탭 버튼 */}
         <CanvasTabButtons
@@ -461,25 +270,11 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
           setActiveCanvasIndex={setActiveCanvasIndex}
           addCanvas={addCanvas}
         />
-        <div className="relative w-[800px] h-[600px] border">
-          {[...Array(canvasCount)].map((_, i) => (
-            <div
-              key={i}
-              style={{
-                display: activeCanvasIndex === i ? "block" : "none",
-              }}
-            >
-              <canvas
-                ref={(el) => {
-                  if (el) canvasRefs.current[i] = el;
-                }}
-                width={800}
-                height={600}
-                style={{ border: "1px solid red" }}
-              />
-            </div>
-          ))}
-        </div>
+        <CanvasSection
+          canvasCount={canvasCount}
+          activeCanvasIndex={activeCanvasIndex}
+          canvasRefs={canvasRefs}
+        />
       </div>
     </div>
   );

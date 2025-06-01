@@ -20,6 +20,14 @@ export default [
     ),
     route(":joinCode", "features/rollingpaper/pages/rollingpaper-page.tsx"),
     route(
+      ":joinCode/create",
+      "features/rollingpaper/pages/action/rollingpaper-create-page.tsx"
+    ),
+    route(
+      ":joinCode/delete",
+      "features/rollingpaper/pages/action/rollingpaper-delete-page.tsx"
+    ),
+    route(
       ":joinCode/my",
       "features/rollingpaper/pages/my-rollingpaper-page.tsx"
     ),

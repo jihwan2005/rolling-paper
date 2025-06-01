@@ -1,6 +1,6 @@
-// components/RollingPaperUI.tsx (혹은 원하는 경로에)
+// components/RollingPaperUI.tsx
 import React, { useEffect, useState } from "react";
-import { ImageIcon, Send } from "lucide-react";
+import { ImageIcon, Send, Palette, PenTool } from "lucide-react"; // PenTool 아이콘 추가
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,13 @@ interface RollingPaperUIProps {
   authorId: string;
   userId: string;
   joinCode: string;
+  // 브러쉬 모드 관련 props 추가
+  isDrawingMode: boolean;
+  handleToggleDrawingMode: () => void;
+  brushColor: string;
+  handleBrushColorChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  brushWidth: number;
+  handleBrushWidthChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const RollingPaperUI: React.FC<RollingPaperUIProps> = ({
@@ -39,87 +46,158 @@ const RollingPaperUI: React.FC<RollingPaperUIProps> = ({
   authorId,
   userId,
   joinCode,
+  isDrawingMode,
+  handleToggleDrawingMode,
+  brushColor,
+  handleBrushColorChange,
+  brushWidth,
+  handleBrushWidthChange,
 }) => {
   const author = authorId === userId;
   const fetcher = useFetcher();
   const [open, setOpen] = useState(false);
+
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data?.success) {
       alert("성공적으로 전달되었습니다!");
       setOpen(false);
     }
   }, [fetcher.state, fetcher.data]);
+
   return (
-    <div className="flex gap-4">
-      {/* 폰트 선택 */}
-      <label>
-        Font:
+    <div className="flex flex-wrap gap-4 p-4 border rounded-lg shadow-md">
+      {/* 텍스트 도구 */}
+      <div className="flex flex-col gap-2 p-2 border rounded">
+        <h3 className="font-semibold">텍스트 도구</h3>
+        <label htmlFor="font-family" className="text-sm">
+          폰트:
+        </label>
         <select
+          id="font-family"
           value={font}
           onChange={handleFontChange}
-          className="ml-2 p-1 border rounded"
+          className="p-1 border rounded text-sm"
+          disabled={isDrawingMode}
         >
-          {fontFamilies.map(
-            (
-              f // 'font' 변수와의 충돌을 피하기 위해 'f'로 변경
-            ) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            )
-          )}
+          {fontFamilies.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
         </select>
-      </label>
 
-      {/* 색상 선택 */}
-      <label>
-        Color:
+        <label htmlFor="text-color" className="text-sm">
+          색상:
+        </label>
         <input
           type="color"
+          id="text-color"
           value={color}
           onChange={handleColorChange}
-          className="ml-2"
+          className="w-10 h-10 border rounded"
+          disabled={isDrawingMode}
         />
-      </label>
-      <button
-        onClick={handleAddText}
-        className="p-2 bg-green-500 text-white rounded cursor-pointer"
-      >
-        추가하기
-      </button>
-      <button
-        onClick={handleDeleteObject}
-        className="p-2 bg-red-500 text-white rounded cursor-pointer"
-      >
-        삭제하기
-      </button>
-      <button
-        onClick={handleSubmitObject}
-        className="p-2 bg-blue-500 text-white rounded cursor-pointer"
-      >
-        저장하기
-      </button>
-      <input
-        type="file"
-        accept="image/*"
-        className="hidden"
-        id="image-upload"
-        onChange={handleImageUpload}
-      />
-      <label
-        htmlFor="image-upload"
-        className="p-2 bg-yellow-500 text-white rounded cursor-pointer"
-      >
-        <ImageIcon />
-      </label>
+        <button
+          onClick={handleAddText}
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
+          disabled={isDrawingMode}
+        >
+          텍스트 추가
+        </button>
+      </div>
+
+      {/* 이미지 도구 */}
+      <div className="flex flex-col gap-2 p-2 border rounded">
+        <h3 className="font-semibold">이미지 도구</h3>
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          id="image-upload"
+          onChange={handleImageUpload}
+          disabled={isDrawingMode}
+        />
+        <label
+          htmlFor="image-upload"
+          className={`p-2 bg-yellow-500 text-white rounded cursor-pointer flex items-center justify-center ${
+            isDrawingMode
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-yellow-600"
+          }`}
+        >
+          <ImageIcon className="mr-2" /> 이미지 추가
+        </label>
+      </div>
+
+      {/* 브러쉬 도구 */}
+      <div className="flex flex-col gap-2 p-2 border rounded">
+        <h3 className="font-semibold">브러쉬 도구</h3>
+        <button
+          onClick={handleToggleDrawingMode}
+          className={`p-2 rounded flex items-center justify-center ${
+            isDrawingMode ? "bg-red-500 text-white" : "bg-green-500 text-white"
+          } hover:opacity-80`}
+        >
+          <PenTool className="mr-2" />
+          {isDrawingMode ? "드로잉 모드 끄기" : "드로잉 모드 켜기"}
+        </button>
+        {isDrawingMode && (
+          <>
+            <label htmlFor="brush-color" className="text-sm">
+              브러쉬 색상:
+            </label>
+            <input
+              type="color"
+              id="brush-color"
+              value={brushColor}
+              onChange={handleBrushColorChange}
+              className="w-10 h-10 border rounded"
+            />
+            <label htmlFor="brush-width" className="text-sm">
+              브러쉬 두께:
+            </label>
+            <input
+              type="range"
+              id="brush-width"
+              min="1"
+              max="20"
+              value={brushWidth}
+              onChange={handleBrushWidthChange}
+              className="w-full"
+            />
+            <span className="text-xs text-gray-500">두께: {brushWidth}</span>
+            {/* **브러쉬 종류 선택 추가** */}
+          </>
+        )}
+      </div>
+
+      {/* 공통 작업 */}
+      <div className="flex flex-col gap-2 p-2 border rounded">
+        <h3 className="font-semibold">공통 작업</h3>
+        <button
+          onClick={handleSubmitObject}
+          className="bg-purple-500 text-white p-2 rounded hover:bg-purple-600 disabled:opacity-50"
+          disabled={isDrawingMode} // 드로잉 모드일 때 비활성화
+        >
+          저장하기
+        </button>
+        <button
+          onClick={handleDeleteObject}
+          className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+        >
+          삭제하기
+        </button>
+      </div>
+
+      {/* 롤링페이퍼 전달 (기존 코드 유지) */}
       {author && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger>
             <button
-              className="p-2 bg-pink-500 text-white rounded cursor-pointer"
+              className="p-2 bg-pink-500 text-white rounded cursor-pointer flex items-center justify-center"
               type="button"
             >
-              <Send />
+              <Send className="mr-2" /> 전달하기
             </button>
           </DialogTrigger>
           <DialogContent className="bg-white">
