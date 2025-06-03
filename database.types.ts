@@ -145,6 +145,58 @@ export type Database = {
           },
         ]
       }
+      rolling_paper_audio: {
+        Row: {
+          audio_node_id: number
+          audio_url: string
+          canvas_index: number
+          left: number
+          profile_id: string
+          rolling_paper_id: number
+          top: number
+        }
+        Insert: {
+          audio_node_id?: never
+          audio_url: string
+          canvas_index?: number
+          left: number
+          profile_id: string
+          rolling_paper_id: number
+          top: number
+        }
+        Update: {
+          audio_node_id?: never
+          audio_url?: string
+          canvas_index?: number
+          left?: number
+          profile_id?: string
+          rolling_paper_id?: number
+          top?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rolling_paper_audio_profile_id_profiles_profile_id_fk"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "rolling_paper_audio_rolling_paper_id_rolling_paper_rolling_pape"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper"
+            referencedColumns: ["rolling_paper_id"]
+          },
+          {
+            foreignKeyName: "rolling_paper_audio_rolling_paper_id_rolling_paper_rolling_pape"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper_view"
+            referencedColumns: ["rolling_paper_id"]
+          },
+        ]
+      }
       rolling_paper_image: {
         Row: {
           angle: number
@@ -205,6 +257,73 @@ export type Database = {
           },
           {
             foreignKeyName: "rolling_paper_image_rolling_paper_id_rolling_paper_rolling_pape"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper_view"
+            referencedColumns: ["rolling_paper_id"]
+          },
+        ]
+      }
+      rolling_paper_path: {
+        Row: {
+          angle: number
+          canvas_index: number
+          left: number
+          path: string
+          path_node_id: number
+          profile_id: string
+          rolling_paper_id: number
+          scaleX: number
+          scaleY: number
+          stroke: string
+          stroke_width: number
+          top: number
+        }
+        Insert: {
+          angle: number
+          canvas_index?: number
+          left: number
+          path: string
+          path_node_id?: never
+          profile_id: string
+          rolling_paper_id: number
+          scaleX: number
+          scaleY: number
+          stroke: string
+          stroke_width: number
+          top: number
+        }
+        Update: {
+          angle?: number
+          canvas_index?: number
+          left?: number
+          path?: string
+          path_node_id?: never
+          profile_id?: string
+          rolling_paper_id?: number
+          scaleX?: number
+          scaleY?: number
+          stroke?: string
+          stroke_width?: number
+          top?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rolling_paper_path_profile_id_profiles_profile_id_fk"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "rolling_paper_path_rolling_paper_id_rolling_paper_rolling_paper"
+            columns: ["rolling_paper_id"]
+            isOneToOne: false
+            referencedRelation: "rolling_paper"
+            referencedColumns: ["rolling_paper_id"]
+          },
+          {
+            foreignKeyName: "rolling_paper_path_rolling_paper_id_rolling_paper_rolling_paper"
             columns: ["rolling_paper_id"]
             isOneToOne: false
             referencedRelation: "rolling_paper_view"

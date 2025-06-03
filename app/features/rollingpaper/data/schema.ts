@@ -92,6 +92,51 @@ export const rollingPaperImage = pgTable("rolling_paper_image", {
   canvas_index: integer().notNull().default(0),
 });
 
+export const rollingPaperPath = pgTable("rolling_paper_path", {
+  path_node_id: bigint({ mode: "number" })
+    .primaryKey()
+    .generatedAlwaysAsIdentity(),
+  path: text().notNull(),
+  stroke: text().notNull(),
+  stroke_width: doublePrecision().notNull(),
+  left: doublePrecision().notNull(),
+  top: doublePrecision().notNull(),
+  scaleX: doublePrecision().notNull(),
+  scaleY: doublePrecision().notNull(),
+  angle: doublePrecision().notNull(),
+  rolling_paper_id: bigint({ mode: "number" })
+    .references(() => rollingPaper.rolling_paper_id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  profile_id: uuid()
+    .references(() => profiles.profile_id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  canvas_index: integer().notNull().default(0),
+});
+
+export const rollingPaperAudio = pgTable("rolling_paper_audio", {
+  audio_node_id: bigint({ mode: "number" })
+    .primaryKey()
+    .generatedAlwaysAsIdentity(),
+  rolling_paper_id: bigint({ mode: "number" })
+    .references(() => rollingPaper.rolling_paper_id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  profile_id: uuid()
+    .references(() => profiles.profile_id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  audio_url: text().notNull(),
+  left: doublePrecision().notNull(),
+  top: doublePrecision().notNull(),
+  canvas_index: integer().notNull().default(0),
+});
+
 export const myRollingPaper = pgTable(
   "my_rolling_paper",
   {

@@ -70,6 +70,30 @@ export const getRollingPaperImageNode = async (
   return data;
 };
 
+export const getRollingPaperPathNode = async (
+  client: SupabaseClient<Database>,
+  { paperId }: { paperId: number }
+) => {
+  const { data, error } = await client
+    .from("rolling_paper_path")
+    .select("*,profiles(username)")
+    .eq("rolling_paper_id", paperId);
+  if (error) throw error;
+  return data;
+};
+
+export const getRollingPaperAudioNode = async (
+  client: SupabaseClient<Database>,
+  { paperId }: { paperId: number }
+) => {
+  const { data, error } = await client
+    .from("rolling_paper_audio")
+    .select("*,profiles(username)")
+    .eq("rolling_paper_id", paperId);
+  if (error) throw error;
+  return data;
+};
+
 export const getMyRollingPaper = async (
   client: SupabaseClient<Database>,
   { userId }: { userId: string }

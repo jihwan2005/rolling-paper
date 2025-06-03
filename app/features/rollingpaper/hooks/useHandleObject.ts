@@ -2,7 +2,9 @@
 
 import { Canvas } from "fabric";
 import type {
+  CustomAudio,
   CustomImage,
+  CustomPath,
   CustomTextbox,
 } from "../interfaces/fabric-interface";
 import { useFetcher } from "react-router"; // useFetcher 훅이 필요합니다.
@@ -29,6 +31,8 @@ export const useHandleObject = ({
 
     const textbox = obj as CustomTextbox;
     const image = obj as CustomImage;
+    const path = obj as CustomPath;
+    const audio = obj as CustomAudio;
 
     const formData = new FormData();
     if (obj?.type === "textbox") {
@@ -46,33 +50,58 @@ export const useHandleObject = ({
       formData.append("angle", String(textbox.angle));
       formData.append("canvasIndex", String(activeCanvasIndex));
     } else if (obj?.type === "image") {
-      formData.append("type", "image");
-      formData.append("imageUrl", String(image.getSrc() || ""));
-      formData.append("imageNodeId", String(image.imageNodeId || ""));
-      formData.append("left", String(image.left));
-      formData.append("top", String(image.top));
-      formData.append("scaleX", String(image.scaleX));
-      formData.append("scaleY", String(image.scaleY));
-      formData.append("angle", String(image.angle));
-      formData.append("width", String(image.width));
-      formData.append("height", String(image.height));
+      const isAudio = (obj as any).isAudio;
+      if (isAudio) {
+        formData.append("type", "audio");
+        formData.append("audioUrl", (obj as any).audioUrl || "");
+        formData.append("left", String(audio.left));
+        formData.append("top", String(audio.top));
+        formData.append("scaleX", String(audio.scaleX));
+        formData.append("scaleY", String(audio.scaleY));
+        formData.append("angle", String(audio.angle));
+        formData.append("canvasIndex", String(activeCanvasIndex));
+      } else {
+        formData.append("type", "image");
+        formData.append("imageUrl", String(image.getSrc() || ""));
+        formData.append("imageNodeId", String(image.imageNodeId || ""));
+        formData.append("left", String(image.left));
+        formData.append("top", String(image.top));
+        formData.append("scaleX", String(image.scaleX));
+        formData.append("scaleY", String(image.scaleY));
+        formData.append("angle", String(image.angle));
+        formData.append("width", String(image.width));
+        formData.append("height", String(image.height));
+        formData.append("canvasIndex", String(activeCanvasIndex));
+      }
+    } else if (obj?.type === "path") {
+      formData.append("type", "path");
+      formData.append("path", JSON.stringify(path.path));
+      formData.append(
+        "stroke",
+        typeof path.stroke === "string"
+          ? path.stroke
+          : JSON.stringify(path.stroke)
+      );
+      formData.append("strokeWidth", String(path.strokeWidth));
+      formData.append("left", String(path.left));
+      formData.append("top", String(path.top));
+      formData.append("scaleX", String(path.scaleX));
+      formData.append("scaleY", String(path.scaleY));
+      formData.append("angle", String(path.angle));
       formData.append("canvasIndex", String(activeCanvasIndex));
-    } else {
-      alert("드로잉 모드에서 그려진 내용은 현재 저장되지 않습니다.");
-      return;
     }
 
     fetcher.submit(formData, {
       method: "POST",
-      action: `/rolling-paper/${joinCode}/create`, // joinCode를 훅의 props로 받아서 사용
+      action: `/rolling-paper/${joinCode}/create`,
     });
   };
 
   const handleDeleteObject = async () => {
     const canvas = canvases[activeCanvasIndex];
     if (!canvas) return;
-    const activeObject = canvas.getActiveObject();
 
+    const activeObject = canvas.getActiveObject();
     if (!activeObject) {
       if (isDrawingMode) {
         alert("드로잉 모드에서는 삭제할 객체가 없습니다.");
@@ -82,28 +111,35 @@ export const useHandleObject = ({
 
     const formData = new FormData();
 
-    if (activeObject.type === "textbox") {
-      // @ts-ignore // Fabric.js 객체에 직접 추가한 속성이므로 필요할 수 있습니다.
+    // @ts-ignore
+    if (activeObject.isAudio) {
+      // @ts-ignore
+      const audioNodeId = activeObject.audioNodeId;
+      if (audioNodeId) {
+        formData.append("type", "audio");
+        formData.append("audioNodeId", String(audioNodeId));
+      }
+    } else if (activeObject.type === "textbox") {
+      // @ts-ignore
       const textNodeId = activeObject.textNodeId;
       if (textNodeId) {
         formData.append("type", "text");
         formData.append("textNodeId", String(textNodeId));
       }
     } else if (activeObject.type === "image") {
-      // @ts-ignore // Fabric.js 객체에 직접 추가한 속성이므로 필요할 수 있습니다.
+      // @ts-ignore
       const imageNodeId = activeObject.imageNodeId;
       if (imageNodeId) {
         formData.append("type", "image");
         formData.append("imageNodeId", String(imageNodeId));
       }
     } else if (activeObject.type === "path") {
-      // 드로잉 모드에서 그려진 선(path) 삭제
-      canvas.remove(activeObject);
-      canvas.discardActiveObject();
-      canvas.requestRenderAll();
-      return; // 데이터베이스에 저장되지 않으므로 API 호출 필요 없음
-    } else {
-      return;
+      // @ts-ignore
+      const pathNodeId = activeObject.pathNodeId;
+      if (pathNodeId) {
+        formData.append("type", "path");
+        formData.append("pathNodeId", String(pathNodeId));
+      }
     }
 
     canvas.remove(activeObject);
@@ -112,7 +148,7 @@ export const useHandleObject = ({
 
     fetcher.submit(formData, {
       method: "POST",
-      action: `/rolling-paper/${joinCode}/delete`, // joinCode를 훅의 props로 받아서 사용
+      action: `/rolling-paper/${joinCode}/delete`,
     });
   };
 

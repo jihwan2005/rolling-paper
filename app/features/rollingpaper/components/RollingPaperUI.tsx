@@ -1,6 +1,15 @@
 // components/RollingPaperUI.tsx
 import React, { useEffect, useState } from "react";
-import { ImageIcon, Send, Palette, PenTool } from "lucide-react"; // PenTool 아이콘 추가
+import {
+  ImageIcon,
+  Send,
+  Palette,
+  PenTool,
+  HeadsetIcon,
+  SaveIcon,
+  TrashIcon,
+  TypeIcon,
+} from "lucide-react"; // PenTool 아이콘 추가
 import {
   Dialog,
   DialogContent,
@@ -24,8 +33,8 @@ interface RollingPaperUIProps {
   authorId: string;
   userId: string;
   joinCode: string;
-  // 브러쉬 모드 관련 props 추가
   isDrawingMode: boolean;
+  handleAudioUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleToggleDrawingMode: () => void;
   brushColor: string;
   handleBrushColorChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -52,6 +61,7 @@ const RollingPaperUI: React.FC<RollingPaperUIProps> = ({
   handleBrushColorChange,
   brushWidth,
   handleBrushWidthChange,
+  handleAudioUpload,
 }) => {
   const author = authorId === userId;
   const fetcher = useFetcher();
@@ -65,7 +75,7 @@ const RollingPaperUI: React.FC<RollingPaperUIProps> = ({
   }, [fetcher.state, fetcher.data]);
 
   return (
-    <div className="flex flex-wrap gap-4 p-4 border rounded-lg shadow-md">
+    <div className="flex flex-wrap gap-4 p-4 border rounded-lg shadow-md w-8/9">
       {/* 텍스트 도구 */}
       <div className="flex flex-col gap-2 p-2 border rounded">
         <h3 className="font-semibold">텍스트 도구</h3>
@@ -99,10 +109,10 @@ const RollingPaperUI: React.FC<RollingPaperUIProps> = ({
         />
         <button
           onClick={handleAddText}
-          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50 flex items-center"
           disabled={isDrawingMode}
         >
-          텍스트 추가
+          <TypeIcon className="mr-2" /> 텍스트 추가
         </button>
       </div>
 
@@ -126,6 +136,29 @@ const RollingPaperUI: React.FC<RollingPaperUIProps> = ({
           }`}
         >
           <ImageIcon className="mr-2" /> 이미지 추가
+        </label>
+      </div>
+
+      {/*음성파일 도구 */}
+      <div className="flex flex-col gap-2 p-2 border rounded">
+        <h3 className="font-semibold">오디오 도구</h3>
+        <input
+          type="file"
+          accept="audio/*"
+          className="hidden"
+          id="audio-upload"
+          onChange={handleAudioUpload}
+          disabled={isDrawingMode}
+        />
+        <label
+          htmlFor="audio-upload"
+          className={`p-2 bg-blue-500 text-white rounded cursor-pointer flex items-center justify-center ${
+            isDrawingMode
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-blue-600"
+          }`}
+        >
+          <HeadsetIcon className="mr-2" /> 오디오 추가
         </label>
       </div>
 
@@ -173,19 +206,19 @@ const RollingPaperUI: React.FC<RollingPaperUIProps> = ({
 
       {/* 공통 작업 */}
       <div className="flex flex-col gap-2 p-2 border rounded">
-        <h3 className="font-semibold">공통 작업</h3>
+        <h3 className="font-semibold">공통 작업 도구</h3>
         <button
           onClick={handleSubmitObject}
-          className="bg-purple-500 text-white p-2 rounded hover:bg-purple-600 disabled:opacity-50"
+          className="bg-purple-500 text-white p-2 rounded hover:bg-purple-600 disabled:opacity-50 flex items-center"
           disabled={isDrawingMode} // 드로잉 모드일 때 비활성화
         >
-          저장하기
+          <SaveIcon className="mr-2" /> 저장하기
         </button>
         <button
           onClick={handleDeleteObject}
-          className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+          className="bg-red-500 text-white p-2 rounded hover:bg-red-600 flex items-center"
         >
-          삭제하기
+          <TrashIcon className="mr-2" /> 삭제하기
         </button>
       </div>
 

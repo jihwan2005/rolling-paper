@@ -3,7 +3,9 @@ import { makeSSRClient } from "~/supa-client";
 import { getRollingPaperByJoinCode } from "../../data/queries";
 import { getLoggedInUserId } from "~/features/users/queries";
 import {
+  createAudioNode,
   createImageNode,
+  createPathNode,
   createTextNode,
   updateTextNode,
 } from "../../data/mutations";
@@ -86,5 +88,41 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
       imageUrl,
       canvasIndex,
     });
+  } else if(type === "path") {
+    const path = formData.get("path") as string;
+    const stroke = formData.get("stroke") as string;
+    const strokeWidth = formData.get("strokeWidth") as string;
+    const left = formData.get("left") as string;
+    const top = formData.get("top") as string;
+    const scaleX = formData.get("scaleX") as string;
+    const scaleY = formData.get("scaleY") as string;
+    const angle = formData.get("angle") as string;
+    const canvasIndex = formData.get("canvasIndex") as string;
+    await createPathNode(client, {
+      rolling_paper_id: Number(rolling_paper_id),
+      userId,
+      left,
+      top,
+      scaleX,
+      scaleY,
+      angle,
+      path,
+      stroke,
+      strokeWidth,
+      canvasIndex
+    })
+  } else if(type === "audio") {
+    const audioUrl = formData.get("audioUrl") as string;
+    const left = formData.get("left") as string;
+    const top = formData.get("top") as string;
+    const canvasIndex = formData.get("canvasIndex") as string;
+    await createAudioNode(client,{
+      audioUrl,
+      left,
+      top,
+      canvasIndex,
+      rolling_paper_id: Number(rolling_paper_id),
+      userId,
+    })
   }
 };

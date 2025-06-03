@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas, Textbox, FabricImage, PencilBrush } from "fabric";
+import { Canvas, Textbox, FabricImage, PencilBrush, Path } from "fabric";
 import type { Route } from "./+types/rollingpaper-page";
 import { makeSSRClient } from "~/supa-client";
 import {
+  getRollingPaperAudioNode,
   getRollingPaperByJoinCode,
   getRollingPaperImageNode,
+  getRollingPaperPathNode,
   getRollingPaperTextNode,
 } from "../data/queries";
 import { getLoggedInUserId } from "~/features/users/queries";
@@ -31,6 +33,12 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const imageNodes = await getRollingPaperImageNode(client, {
     paperId: rolling_paper_id,
   });
+  const pathNodes = await getRollingPaperPathNode(client, {
+    paperId: rolling_paper_id,
+  });
+  const audioNodes = await getRollingPaperAudioNode(client, {
+    paperId: rolling_paper_id,
+  });
   return {
     joinCode,
     rolling_paper_title,
@@ -38,6 +46,8 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
     userId,
     imageNodes,
     profile_id,
+    pathNodes,
+    audioNodes,
   };
 };
 
@@ -51,8 +61,9 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const initialCanvasCount = Math.max(
     1, // 최소 1개의 캔버스는 항상 존재
-    ...loaderData.textNodes.map((n) => n.canvas_index + 1), // textNodes 중 가장 큰 canvas_index + 1
-    ...loaderData.imageNodes.map((n) => n.canvas_index + 1) // imageNodes 중 가장 큰 canvas_index + 1
+    ...loaderData.textNodes.map((n) => n.canvas_index + 1),
+    ...loaderData.imageNodes.map((n) => n.canvas_index + 1),
+    ...loaderData.pathNodes.map((n) => n.canvas_index + 1)
   );
   const [canvasCount, setCanvasCount] = useState(initialCanvasCount);
   const fontFamilies = [
@@ -108,6 +119,8 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
           angle: node.angle,
           editable: node.profile_id === loaderData.userId,
           selectable: node.profile_id === loaderData.userId,
+          hoverCursor:
+            node.profile_id !== loaderData.userId ? "default" : "move",
         });
         (customText as any).textNodeId = node.text_node_id;
         (customText as any).profile_id = node.profile_id;
@@ -132,6 +145,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
             height: node.height,
             selectable: node.profile_id === loaderData.userId,
             editable: node.profile_id === loaderData.userId,
+            hoverCursor: node.profile_id !== loaderData.userId && "default",
           });
 
           (img as any).imageNodeId = node.image_node_id;
@@ -141,6 +155,65 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
           canvas.add(img);
         });
       }
+
+      for (const node of loaderData.audioNodes.filter(
+        (n) => n.canvas_index === idx
+      )) {
+        const audioUrl = node.audio_url;
+        const iconUrl =
+          "https://media.istockphoto.com/id/1189124876/video/black-and-white-sound-icon-audio-music-speaker-animation.jpg?s=640x640&k=20&c=-MH5kixm4YfRIersYM8rKij1RVgAH8ixtTw0xJ17tj4=";
+        FabricImage.fromURL(iconUrl).then((img) => {
+          img.set({
+            scaleX: 0.2,
+            scaleY: 0.2,
+            left: node.left,
+            top: node.top,
+            stroke: "black", // 테두리 색상
+            strokeWidth: 2, // 테두리 두께
+            strokeUniform: true,
+            selectable: node.profile_id === loaderData.userId,
+            editable: node.profile_id === loaderData.userId,
+            hoverCursor: node.profile_id !== loaderData.userId && "pointer",
+          });
+          (img as any).audioUrl = audioUrl;
+          (img as any).audioNodeId = node.audio_node_id;
+          (img as any).profile_id = node.profile_id;
+          (img as any).username = node.profiles?.username;
+          (img as any).isAudio = true;
+          img.on("mousedown", () => {
+            const audio = new Audio((img as any).audioUrl);
+            audio.play();
+          });
+          canvas.add(img);
+        });
+      }
+
+      for (const node of loaderData.pathNodes.filter(
+        (n) => n.canvas_index === idx
+      )) {
+        const pathObj = JSON.parse(node.path); // JSON → 객체
+        const path = new Path(pathObj, {
+          left: node.left,
+          top: node.top,
+          scaleX: node.scaleX,
+          scaleY: node.scaleY,
+          angle: node.angle,
+          fill: null,
+          stroke: node.stroke,
+          strokeWidth: node.stroke_width,
+          selectable: node.profile_id === loaderData.userId,
+          editable: node.profile_id === loaderData.userId,
+          hoverCursor:
+            node.profile_id !== loaderData.userId ? "default" : "move",
+        });
+
+        // 사용자 정보 주입
+        (path as any).pathNodeId = node.path_node_id;
+        (path as any).profile_id = node.profile_id;
+        (path as any).username = node.profiles?.username;
+
+        canvas.add(path);
+      }
       // Tooltip 이벤트
       const tooltip = document.getElementById("tooltip");
       canvas.on("mouse:over", (e) => {
@@ -149,16 +222,15 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
         const evt = e.e as MouseEvent;
 
         if (
-          (target?.type === "textbox" || target?.type === "image") &&
+          (target?.type === "textbox" ||
+            target?.type === "image" ||
+            target?.type === "path") &&
           target.profile_id !== loaderData.userId &&
           target.username
         ) {
           tooltip.style.left = `${evt.pageX + 10}px`;
           tooltip.style.top = `${evt.pageY + 10}px`;
-          tooltip.innerText =
-            target.type === "textbox"
-              ? `${target.username}님이 작성함`
-              : `${target.username}님이 올림`;
+          tooltip.innerText = `${target.username}님이 올림`;
           tooltip.style.display = "block";
         }
       });
@@ -197,17 +269,18 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
   const { handleSubmitObject, handleDeleteObject } = useHandleObject({
     canvases,
     activeCanvasIndex,
-    joinCode: loaderData.joinCode, // loaderData에서 joinCode 전달
-    isDrawingMode, // isDrawingMode 상태 전달
+    joinCode: loaderData.joinCode,
+    isDrawingMode,
   });
 
-  const { handleAddText, handleImageUpload } = useObjectCreation({
-    canvases,
-    activeCanvasIndex,
-    isDrawingMode,
-    font, // font 상태 전달
-    color, // color 상태 전달
-  });
+  const { handleAddText, handleImageUpload, handleAudioUpload } =
+    useObjectCreation({
+      canvases,
+      activeCanvasIndex,
+      isDrawingMode,
+      font, // font 상태 전달
+      color, // color 상태 전달
+    });
 
   const handleToggleDrawingMode = () => {
     setIsDrawingMode((prev) => {
@@ -250,6 +323,7 @@ export default function RollingPaperPage({ loaderData }: Route.ComponentProps) {
         handleDeleteObject={handleDeleteObject}
         handleSubmitObject={handleSubmitObject}
         handleImageUpload={handleImageUpload}
+        handleAudioUpload={handleAudioUpload}
         authorId={loaderData.profile_id}
         userId={loaderData.userId}
         joinCode={loaderData.joinCode}

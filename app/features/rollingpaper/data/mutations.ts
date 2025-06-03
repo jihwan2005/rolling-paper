@@ -244,3 +244,108 @@ export const seeNotification = async (
   if (error) throw error;
   return data;
 };
+
+export const createPathNode = async (
+  client: SupabaseClient<Database>,
+  {
+    rolling_paper_id,
+    userId,
+    left,
+    top,
+    scaleX,
+    scaleY,
+    angle,
+    canvasIndex,
+    stroke,
+    strokeWidth,
+    path,
+  }: {
+    rolling_paper_id: number;
+    userId: string;
+    left: string;
+    top: string;
+    scaleX: string;
+    scaleY: string;
+    angle: string;
+    canvasIndex: string;
+    stroke: string;
+    strokeWidth: string;
+    path: string;
+  }
+) => {
+  const { data, error } = await client
+    .from("rolling_paper_path")
+    .insert({
+      rolling_paper_id,
+      profile_id: userId,
+      left: Number(left),
+      top: Number(top),
+      scaleX: Number(scaleX),
+      scaleY: Number(scaleY),
+      angle: Number(angle),
+      canvas_index: Number(canvasIndex),
+      stroke,
+      stroke_width: Number(strokeWidth),
+      path,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const deletePathNode = async (
+  client: SupabaseClient<Database>,
+  { nodeId }: { nodeId: number }
+) => {
+  const { error } = await client
+    .from("rolling_paper_path")
+    .delete()
+    .eq("path_node_id", nodeId);
+  if (error) throw error;
+};
+
+export const deleteAudioNode = async (
+  client: SupabaseClient<Database>,
+  { nodeId }: { nodeId: number }
+) => {
+  const { error } = await client
+    .from("rolling_paper_audio")
+    .delete()
+    .eq("audio_node_id", nodeId);
+  if (error) throw error;
+};
+
+export const createAudioNode = async (
+  client: SupabaseClient<Database>,
+  {
+    rolling_paper_id,
+    userId,
+    left,
+    top,
+    audioUrl,
+    canvasIndex,
+  }: {
+    rolling_paper_id: number;
+    userId: string;
+    left: string;
+    top: string;
+    audioUrl: string;
+    canvasIndex: string;
+  }
+) => {
+  const { data, error } = await client
+    .from("rolling_paper_audio")
+    .insert({
+      rolling_paper_id,
+      profile_id: userId,
+      left: Number(left),
+      top: Number(top),
+      audio_url: audioUrl,
+      canvas_index: Number(canvasIndex),
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
